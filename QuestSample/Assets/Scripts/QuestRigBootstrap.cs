@@ -177,17 +177,24 @@ namespace SplatXR.QuestSample
                 Debug.Log("[SplatXR Quest] XR loader: " + (loader != null ? loader.GetType().Name : "none. Editor Play without a headset does this; a Quest build should say OpenXRLoader."));
             }
 
+            // Unity 6.6 removed XRDisplaySubsystem.TryRequestDisplayRefreshRate. Requesting a rate
+            // now lives in com.unity.xr.meta-openxr as an optional extension, which this sample does not reference.
+            // Read the rate the runtime already chose. Set 72 Hz from the Quest quick settings if you want that target.
             var displays = new List<XRDisplaySubsystem>();
             SubsystemManager.GetSubsystems(displays);
+            bool loggedRate = false;
             foreach (var display in displays)
             {
                 if (!display.running)
                     continue;
-                if (display.TryRequestDisplayRefreshRate(72f))
-                    Debug.Log("[SplatXR Quest] Requested a 72 Hz display refresh.");
+                loggedRate = true;
+                if (display.TryGetDisplayRefreshRate(out float rate))
+                    Debug.Log("[SplatXR Quest] Display refresh rate is " + rate.ToString("0.#") + " Hz. This sample does not change it.");
                 else
-                    Debug.LogWarning("[SplatXR Quest] Could not request 72 Hz. The headset will keep its current refresh rate.");
+                    Debug.Log("[SplatXR Quest] XR display is running. Refresh rate was not reported.");
             }
+            if (!loggedRate)
+                Debug.Log("[SplatXR Quest] No running XR display yet. The headset keeps its system refresh rate.");
         }
     }
 }

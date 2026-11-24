@@ -90,6 +90,7 @@ On device:
 - Look slightly down. A world-space panel shows FPS, graphics API, whether OpenXR started, loaded splat count, how many splats are in the mesh, and whether the shader is supported.
 - Left stick moves you along the floor, relative to your head yaw, at 1.5 m/s. Change `Move Speed` on QuestBootstrap.
 - Right stick snap-turns 45 degrees. Push the stick back to center before the next snap.
+- The sample does not change the headset refresh rate. Unity 6.6 no longer has `XRDisplaySubsystem.TryRequestDisplayRefreshRate`. Logcat prints the rate the runtime already chose. Set 72 Hz from the Quest quick settings if you want that target.
 - The cyan cube and the floor are not splats. If you can see them and walk, tracking and URP work, and a missing room is a splat problem. If you see only the skybox and not the cube, the camera or the render pipeline is wrong.
 
 SplatXR sorts from the camera tagged `MainCamera`. The bootstrap tags its camera. Do not add a second camera with that tag.
