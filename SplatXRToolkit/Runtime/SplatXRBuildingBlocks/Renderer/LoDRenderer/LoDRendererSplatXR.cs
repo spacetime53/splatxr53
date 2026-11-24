@@ -207,6 +207,16 @@ namespace SplatXR
             {
                 //Debug.Log($"Loaded {positionsLow.Length} low detail splats");
             }
+
+            int high = positionsHigh != null ? positionsHigh.Length : 0;
+            int medium = positionsMedium != null ? positionsMedium.Length : 0;
+            int low = positionsLow != null ? positionsLow.Length : 0;
+            Debug.Log("[SplatXR] LoD loaded on '" + name + "': high=" + high.ToString("N0") +
+                      ", medium=" + medium.ToString("N0") + ", low=" + low.ToString("N0") + ".", this);
+            if (high + medium + low == 0)
+            {
+                Debug.LogError("[SplatXR] LoD renderer '" + name + "' has no splat levels assigned, so nothing will draw.", this);
+            }
         }
 
         private void Update()
@@ -337,7 +347,6 @@ namespace SplatXR
             }
     #endif
 
-            var startTime = Time.realtimeSinceStartup;
             var cameraPos = GetCurrentCameraPosition();
             var worldMatrix = transform.localToWorldMatrix;
         
@@ -400,7 +409,6 @@ namespace SplatXR
                 var sortingArray = sortingTask.Result;
                 isCreatingMeshArrays = true;
 
-                startTime = Time.realtimeSinceStartup;
                 meshArraysTask = System.Threading.Tasks.Task.Run(() => CreateLODMeshArrays(sortingArray, 
                     currentPositionsHigh, currentColorsHigh, currentOpacitiesHigh, currentCovariances0_3High, currentCovariances3_6High,
                     currentPositionsMedium, currentColorsMedium, currentOpacitiesMedium, currentCovariances0_3Medium, currentCovariances3_6Medium,
@@ -416,52 +424,22 @@ namespace SplatXR
                 if (LogIfFailed(meshArraysTask, "mesh building")) return;
 
                 var meshArrays = meshArraysTask.Result;
-
-                startTime = Time.realtimeSinceStartup;
-
-                bool isQuestPlatform = Application.platform == RuntimePlatform.Android && !Application.isEditor;
-
-                if (isQuestPlatform)
-                {
-                    isSettingMesh = true;
-                    meshSetTask = System.Threading.Tasks.Task.Run(() =>
-                    {
-                        tempMesh.Clear();
-                        tempMesh.vertices = meshArrays.vertices;
-                        tempMesh.SetUVs(1, meshArrays.centerPositions);
-                        tempMesh.SetUVs(2, meshArrays.vertexColors);
-                        tempMesh.SetUVs(3, meshArrays.vertexOpacities);
-                        tempMesh.SetUVs(5, meshArrays.vertexCov0_3);
-                        tempMesh.SetUVs(6, meshArrays.vertexCov3_6);
-                        tempMesh.SetIndices(meshArrays.indices, MeshTopology.Triangles, 0);
-                        tempMesh.RecalculateBounds();
-                    });
-                }
-                else
-                {
-                    mesh.Clear();
-                    mesh.vertices = meshArrays.vertices;
-                    mesh.SetUVs(1, meshArrays.centerPositions);
-                    mesh.SetUVs(2, meshArrays.vertexColors);
-                    mesh.SetUVs(3, meshArrays.vertexOpacities);
-                    mesh.SetUVs(5, meshArrays.vertexCov0_3);
-                    mesh.SetUVs(6, meshArrays.vertexCov3_6);
-                    mesh.SetIndices(meshArrays.indices, MeshTopology.Triangles, 0);
-                    mesh.RecalculateBounds();
-                }
+                int loadedCount = (positionsHigh != null ? positionsHigh.Length : 0) +
+                                  (positionsMedium != null ? positionsMedium.Length : 0) +
+                                  (positionsLow != null ? positionsLow.Length : 0) +
+                                  (positions != null ? positions.Length : 0);
+                SplatMeshUploader.Apply(
+                    this,
+                    mesh,
+                    meshArrays.vertices,
+                    meshArrays.centerPositions,
+                    meshArrays.vertexColors,
+                    meshArrays.vertexOpacities,
+                    meshArrays.vertexCov0_3,
+                    meshArrays.vertexCov3_6,
+                    meshArrays.indices,
+                    loadedCount);
                 return;
-            }
-
-            bool isQuestDevice = Application.platform == RuntimePlatform.Android && !Application.isEditor;
-            if (isQuestDevice && isSettingMesh && meshSetTask?.IsCompleted == true)
-            {
-                isSettingMesh = false;
-                if (LogIfFailed(meshSetTask, "mesh upload")) return;
-
-                var temp = mesh;
-                mesh = tempMesh;
-                tempMesh = temp;
-                GetComponent<MeshFilter>().mesh = mesh;
             }
         }
 

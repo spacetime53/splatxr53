@@ -152,12 +152,16 @@ namespace SplatXR
         {
             if (splatFilePath == null)
             {
-                Debug.LogError("No CSV file assigned. Please assign a CSV file in the inspector.");
+                Debug.LogError("[SplatXR] No usplat CSV assigned on '" + name + "'. Use SplatXR > Building Blocks Panel > Splat Renderer and click Add to Scene.", this);
                 return;
             }
 
-            SplatCsvLoader.Load(splatFilePath, out Vector3[] positions, out Vector3[] colors, out float[] opacities,
-                out Vector3[] covariances0_3, out Vector3[] covariances3_6);
+            if (!SplatCsvLoader.Load(splatFilePath, out Vector3[] positions, out Vector3[] colors, out float[] opacities,
+                    out Vector3[] covariances0_3, out Vector3[] covariances3_6))
+            {
+                Debug.LogError("[SplatXR] Failed to read usplat CSV '" + splatFilePath.name + "' on '" + name + "'.", this);
+                return;
+            }
 
             this.positions = positions;
             this.colors = colors;
@@ -166,6 +170,12 @@ namespace SplatXR
             this.covariances3_6 = covariances3_6;
 
             this.lastSortTime = -sortingRate;
+            int count = positions != null ? positions.Length : 0;
+            Debug.Log("[SplatXR] Loaded " + count.ToString("N0") + " splats from '" + splatFilePath.name + "' on '" + name + "'.", this);
+            if (count == 0)
+            {
+                Debug.LogError("[SplatXR] '" + splatFilePath.name + "' produced 0 splats. The file may be empty or not a usplat CSV (13 comma-separated numbers per line).", this);
+            }
         }
 
         private Vector3 editorCameraPosition;
@@ -371,50 +381,18 @@ namespace SplatXR
                 if (LogIfFailed(meshArraysTask, "mesh building")) return;
 
                 var meshArrays = meshArraysTask.Result;
-
-                bool isQuestPlatform = Application.platform == RuntimePlatform.Android && !Application.isEditor;
-
-                if (isQuestPlatform)
-                {
-                    isSettingMesh = true;
-                    meshSetTask = System.Threading.Tasks.Task.Run(() =>
-                    {
-                        tempMesh.Clear();
-                        tempMesh.vertices = meshArrays.vertices;
-                        tempMesh.SetUVs(1, meshArrays.centerPositions);
-                        tempMesh.SetUVs(2, meshArrays.vertexColors);
-                        tempMesh.SetUVs(3, meshArrays.vertexOpacities);
-                        tempMesh.SetUVs(5, meshArrays.vertexCov0_3);
-                        tempMesh.SetUVs(6, meshArrays.vertexCov3_6);
-                        tempMesh.SetIndices(meshArrays.indices, MeshTopology.Triangles, 0);
-                        tempMesh.RecalculateBounds();
-                    });
-                }
-                else
-                {
-                    mesh.Clear();
-                    mesh.vertices = meshArrays.vertices;
-                    mesh.SetUVs(1, meshArrays.centerPositions);
-                    mesh.SetUVs(2, meshArrays.vertexColors);
-                    mesh.SetUVs(3, meshArrays.vertexOpacities);
-                    mesh.SetUVs(5, meshArrays.vertexCov0_3);
-                    mesh.SetUVs(6, meshArrays.vertexCov3_6);
-                    mesh.SetIndices(meshArrays.indices, MeshTopology.Triangles, 0);
-                    mesh.RecalculateBounds();
-                }
+                SplatMeshUploader.Apply(
+                    this,
+                    mesh,
+                    meshArrays.vertices,
+                    meshArrays.centerPositions,
+                    meshArrays.vertexColors,
+                    meshArrays.vertexOpacities,
+                    meshArrays.vertexCov0_3,
+                    meshArrays.vertexCov3_6,
+                    meshArrays.indices,
+                    LoadedSplatCount);
                 return;
-            }
-
-            bool isQuestDevice = Application.platform == RuntimePlatform.Android && !Application.isEditor;
-            if (isQuestDevice && isSettingMesh && meshSetTask?.IsCompleted == true)
-            {
-                isSettingMesh = false;
-                if (LogIfFailed(meshSetTask, "mesh upload")) return;
-
-                var temp = mesh;
-                mesh = tempMesh;
-                tempMesh = temp;
-                GetComponent<MeshFilter>().mesh = mesh;
             }
         }
 

@@ -70,8 +70,11 @@ namespace SplatXR
 
             if (count > RecommendedMaxSplats)
             {
-                Debug.LogWarning($"[SplatXR] {csvFile.name} has {count:N0} splats, which is more than the recommended maximum of " +
-                                 $"{RecommendedMaxSplats:N0}. Rendering may be slow; consider cropping, decimating the splat, or using the LoD Renderer.", csvFile);
+                // 4 verts * (position + center + color + cov0 + cov3) + 4 * opacity float4 + 6 indices.
+                long meshMb = (long)count * 328L / (1024L * 1024L);
+                Debug.LogWarning($"[SplatXR] {csvFile.name} has {count:N0} splats. About {RecommendedMaxSplats:N0} visible is the frame-rate recommendation, not a hardcoded cap. " +
+                                 $"The mesh is about {meshMb} MB of vertex data and is rebuilt on the CPU every sort. " +
+                                 $"On Quest, raise Sorting Rate, lower the URP render scale, or decimate / use the LoD Renderer before trying 1,000,000. See QUEST3_STANDALONE.md.", csvFile);
             }
 
             return true;
