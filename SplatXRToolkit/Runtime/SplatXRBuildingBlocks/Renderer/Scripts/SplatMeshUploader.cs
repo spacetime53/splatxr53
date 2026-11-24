@@ -14,7 +14,10 @@ namespace SplatXR
         // 4 verts * 5 float3s + 4 float4 opacities + 6 int indices.
         const long BytesPerSplat = 328L;
 
-        static readonly HashSet<int> LoggedOwners = new HashSet<int>();
+        // Identity for "log once". Unity 6.5 makes Object.GetInstanceID a compile error
+        // (use GetEntityId). HashSet equality uses the object itself, which is valid on
+        // 2022.3, Unity 6.2, and 6.6. Do not store Object.GetHashCode: EntityId hashes are not unique.
+        static readonly HashSet<MonoBehaviour> LoggedOwners = new HashSet<MonoBehaviour>();
         static float nextErrorLogTime;
 
         public static void Apply(
@@ -82,8 +85,7 @@ namespace SplatXR
 
         static void LogOnce(MonoBehaviour owner, MeshRenderer meshRenderer, int vertexCount, int loadedCount)
         {
-            int id = owner.GetInstanceID();
-            if (!LoggedOwners.Add(id))
+            if (!LoggedOwners.Add(owner))
                 return;
 
             var material = meshRenderer != null ? meshRenderer.sharedMaterial : null;

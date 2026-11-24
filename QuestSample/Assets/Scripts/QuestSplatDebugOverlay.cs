@@ -102,7 +102,11 @@ namespace SplatXR.QuestSample
             float sortRate = -1f;
             string shaderLine = "no renderer";
 
+#if UNITY_6000_5_OR_NEWER
+            var bases = FindObjectsByType<global::SplatXR.BaseRendererSplatXR>(FindObjectsInactive.Exclude);
+#else
             var bases = FindObjectsByType<global::SplatXR.BaseRendererSplatXR>(FindObjectsSortMode.None);
+#endif
             foreach (var renderer in bases)
             {
                 renderers++;
@@ -114,7 +118,11 @@ namespace SplatXR.QuestSample
                 shaderLine = DescribeShader(renderer.GetComponent<MeshRenderer>());
             }
 
+#if UNITY_6000_5_OR_NEWER
+            var lods = FindObjectsByType<global::SplatXR.LoDRendererSplatXR>(FindObjectsInactive.Exclude);
+#else
             var lods = FindObjectsByType<global::SplatXR.LoDRendererSplatXR>(FindObjectsSortMode.None);
+#endif
             foreach (var renderer in lods)
             {
                 renderers++;
