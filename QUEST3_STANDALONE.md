@@ -32,7 +32,7 @@ You do not need the Meta XR All-in-One SDK. The sample uses Unity OpenXR plus th
 
 ## Open the sample
 
-1. Copy or clone this repository. Keep `QuestSample` and `SplatXRToolkit` as siblings. The package path in `QuestSample/Packages/manifest.json` is `file:../SplatXRToolkit`.
+1. Copy or clone this repository. Keep `QuestSample` and `SplatXRToolkit` as siblings. Unity resolves a `file:` dependency relative to the `Packages` folder, so `../` is the project root and the toolkit one level higher is `file:../../SplatXRToolkit` in `QuestSample/Packages/manifest.json`. That line must point at `<repo>/SplatXRToolkit/package.json`, not at a folder inside `QuestSample`.
 2. Unity Hub, **Add**, **Add project from disk**, select the `QuestSample` folder (the one that contains `Assets` and `Packages`).
 3. Open it with Unity 6.2. The first import downloads URP 17.2.0, OpenXR 1.14.3, XR Management 4.5.1, Input System 1.14.2, and uGUI 2.0.0. If Package Manager says a version does not exist for your editor, install the closest **same major** from the list (URP 17.x, OpenXR 1.14 or newer) and continue.
 4. If Unity asks to restart after changing the input system, restart it.
