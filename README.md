@@ -90,6 +90,8 @@ Your splat is now rendered in the scene and ready for the other building blocks:
 
 Build and deploy as you normally would for your XR platform. For best performance, keep visible splats in a scene under roughly **200k** (see the [FAQ](https://splatxr.github.io/docs/faq.html)).
 
+For a Meta Quest 3 **standalone** APK (not Quest Link / PCVR), open the `QuestSample/` Unity project and follow [QUEST3_STANDALONE.md](QUEST3_STANDALONE.md). That guide covers the Android/OpenXR/URP settings, a tracked locomotion test scene, and why a build can show only the skybox.
+
 # Building Blocks
 
 | Block | What it does | Docs |

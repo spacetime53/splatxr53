@@ -1,0 +1,12 @@
+Library/
+Temp/
+Logs/
+obj/
+UserSettings/
+Build/
+.utmp/
+*.apk
+*.aab
+*.csproj
+*.sln
+Packages/packages-lock.json

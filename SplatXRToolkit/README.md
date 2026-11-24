@@ -34,7 +34,7 @@ See the [Installation guide](https://splatxr.github.io/docs/installation.html) f
 | [Splat Effects](https://splatxr.github.io/docs/building-blocks/effects.html) | Shader effects such as Disintegrate, Radial Reveal, and Digital Rain, plus custom effects. |
 | [Splat Blending](https://splatxr.github.io/docs/building-blocks/blending.html) | Portal windows that blend splat spaces with passthrough reality. |
 
-Known issues and performance tips are in the [FAQ](https://splatxr.github.io/docs/faq.html).
+Known issues and performance tips are in the [FAQ](https://splatxr.github.io/docs/faq.html). A Quest 3 standalone sample and the settings that keep a splat from disappearing on Android are in [QUEST3_STANDALONE.md](../QUEST3_STANDALONE.md) at the repository root.
 
 ## License
 

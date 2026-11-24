@@ -41,6 +41,12 @@ Shader "SplatXR/SplatShader"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            // Covariance is in TEXCOORD5/6. Target 3.5 keeps those vertex inputs legal on mobile.
+            // If they are dropped, the eigen test culls every splat and only the skybox remains.
+            #pragma target 3.5
+            // Quest Multiview is single-pass instanced. Without this, UNITY_MATRIX_V/P stay mono,
+            // the quads land off-screen, and only the stereo skybox remains.
+            #pragma multi_compile_instancing
 
             #include "UnityCG.cginc"
 
@@ -141,7 +147,9 @@ Shader "SplatXR/SplatShader"
                     return o;
                 }
 
-                float focal = 0.5 * _ScreenParams.y * unity_CameraProjection._m11;
+                // UNITY_MATRIX_P is the per-eye projection after UNITY_SETUP_INSTANCE_ID.
+                // unity_CameraProjection is not, and makes the quads the wrong size in Multiview.
+                float focal = 0.5 * _ScreenParams.y * UNITY_MATRIX_P._m11;
 
                 float3x3 MV = mul((float3x3)UNITY_MATRIX_V, (float3x3)UNITY_MATRIX_M);
                 float invZ = 1.0 / viewCenter.z;
@@ -195,6 +203,7 @@ Shader "SplatXR/SplatShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
                 float A = dot(i.vpositionScaled, i.vpositionScaled);
                 if (A > 8.0) discard;
 
